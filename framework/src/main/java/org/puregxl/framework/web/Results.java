@@ -1,7 +1,8 @@
-package org.puregxl.framework.result;
+package org.puregxl.framework.web;
 
 import org.puregxl.framework.errorcode.BaseErrorCode;
 import org.puregxl.framework.exception.AbstractException;
+import org.puregxl.framework.result.Result;
 
 import java.util.Optional;
 

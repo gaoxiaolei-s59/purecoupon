@@ -1,5 +1,11 @@
 spring:
   application:
     name: oneCoupon-merchant-admin
+  datasource:
+    url: jdbc:mysql://101.35.5.210:3306/one_coupon_rebuild?useUnicode=true&characterEncoding=UTF-8&rewriteBatchedStatements=true&allowMultiQueries=true&serverTimezone=Asia/Shanghai
+    username: root
+    password: root
+
+
 server:
   port: 10010
