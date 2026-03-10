@@ -1,8 +1,6 @@
 package org.puregxl.merchant.admin;
 
 
-import com.baomidou.mybatisplus.core.toolkit.Wrappers;
-import lombok.RequiredArgsConstructor;
 import org.junit.jupiter.api.Test;
 import org.puregxl.merchant.admin.dao.entity.CouponTemplateDO;
 import org.puregxl.merchant.admin.dao.mapper.CouponTemplateMapper;
@@ -34,9 +32,6 @@ public class TestMerchantAdmin {
         couponTemplateDO.setReceiveRule("{\"limitPerUser\":1,\"receiveStartTime\":\"2026-03-10 00:00:00\",\"receiveEndTime\":\"2026-03-31 23:59:59\"}");
         couponTemplateDO.setConsumeRule("{\"minimumAmount\":100,\"discountAmount\":20,\"canStack\":false}");
         couponTemplateDO.setStatus(0);
-        couponTemplateDO.setCreateTime(LocalDateTime.now());
-        couponTemplateDO.setUpdateTime(LocalDateTime.now());
-        couponTemplateDO.setDelFlag(0);
 
         couponTemplateMapper.insert(couponTemplateDO);
 
