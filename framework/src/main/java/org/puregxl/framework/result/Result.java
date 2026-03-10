@@ -2,16 +2,23 @@ package org.puregxl.framework.result;
 
 
 import lombok.Data;
+import lombok.experimental.Accessors;
 
+import java.io.Serial;
 import java.io.Serializable;
 
 @Data
+@Accessors(chain = true)
 public class Result<T> implements Serializable {
 
-    private static final String SUCCESS_CODE = "0";
-
+    public static final String SUCCESS_CODE = "0";
+    /**
+     * 返回码
+     */
     private String code;
-
+    /**
+     *
+     */
     private String message;
 
     private T data;
@@ -19,6 +26,8 @@ public class Result<T> implements Serializable {
     private String requestId;
 
     public boolean isSuccess() {
-        return true;
+        return SUCCESS_CODE.equals(code);
     }
+
+
 }
