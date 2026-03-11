@@ -11,7 +11,7 @@ import java.time.LocalDateTime;
 
 @SpringBootTest
 
-public class TestMerchantAdmin {
+public class TestMerchantAdminAbstractChainHandler {
 
     @Autowired
     private  CouponTemplateMapper couponTemplateMapper;
