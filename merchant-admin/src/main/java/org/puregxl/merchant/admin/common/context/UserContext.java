@@ -1,7 +1,5 @@
 package org.puregxl.merchant.admin.common.context;
 
-import org.apache.catalina.User;
-
 import java.util.Optional;
 
 public class UserContext {
@@ -46,7 +44,7 @@ public class UserContext {
      * 获取商品序列号
      * @return
      */
-    public static Long shopNumber() {
+    public static Long getShopNumber() {
         UserInfoDto userInfoDto = userContext.get();
         return Optional.ofNullable(userInfoDto).map(UserInfoDto::getShopNumber).orElse(null);
     }
