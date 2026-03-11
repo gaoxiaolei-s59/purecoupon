@@ -16,6 +16,7 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static org.puregxl.merchant.admin.common.enums.ChainEnum.MERCHANT_ADMIN_CREATE_COUPON_TEMPLATE_KEY;
@@ -53,6 +54,7 @@ public class CouponTemplateServiceImpl extends ServiceImpl<CouponTemplateMapper,
 
         String couponTemplateCacheKey = String.format(MerchantAdminRedisConstant.COUPON_TEMPLATE_KEY, couponTemplateDO.getId());
         stringRedisTemplate.opsForHash().putAll(couponTemplateCacheKey, actualCacheTargetMap);
-
+        //设置过期时间
+        stringRedisTemplate.expire(couponTemplateCacheKey, 30, TimeUnit.MINUTES);
     }
 }
