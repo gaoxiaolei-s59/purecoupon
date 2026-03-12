@@ -1,1 +1,2 @@
 org.puregxl.framework.config.WebAutoConfiguration
+org.puregxl.framework.config.DuplicateConfiguration

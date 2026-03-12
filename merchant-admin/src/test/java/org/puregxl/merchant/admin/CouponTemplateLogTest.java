@@ -3,12 +3,17 @@ package org.puregxl.merchant.admin;
 
 import cn.hutool.core.lang.Snowflake;
 import cn.hutool.core.util.RandomUtil;
+import org.aspectj.lang.ProceedingJoinPoint;
+import org.aspectj.lang.reflect.MethodSignature;
 import org.junit.jupiter.api.Test;
+import org.puregxl.framework.indepence.DuplicateSubmission;
 import org.puregxl.merchant.admin.dao.entity.CouponTemplateLogDO;
 import org.puregxl.merchant.admin.dao.mapper.CouponTemplateLogMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.core.annotation.AnnotationUtils;
 
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -69,4 +74,22 @@ public class CouponTemplateLogTest {
         executorService.shutdown();
         executorService.awaitTermination(10, TimeUnit.MINUTES);
     }
+
+
+    public static DuplicateSubmission getDuplicateSubmission (ProceedingJoinPoint joinPoint) {
+        MethodSignature methodSignature = (MethodSignature) joinPoint.getSignature();
+        Method method = methodSignature.getMethod();
+
+        // 1. 先取方法上的注解
+        DuplicateSubmission annotation = AnnotationUtils.findAnnotation(method, DuplicateSubmission.class);
+        if (annotation != null) {
+            return annotation;
+        }
+
+        // 2. 再取目标类上的注解
+        Class<?> targetClass = joinPoint.getTarget().getClass();
+        return AnnotationUtils.findAnnotation(targetClass, DuplicateSubmission.class);
+    }
+
+
 }
