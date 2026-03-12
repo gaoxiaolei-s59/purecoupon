@@ -155,7 +155,7 @@ public class CouponTemplateServiceImpl extends ServiceImpl<CouponTemplateMapper,
         //增加库存
         String couponTemplateCacheKey = String.format(MerchantAdminRedisConstant.COUPON_TEMPLATE_KEY, couponTemplateDO.getId());
         stringRedisTemplate.opsForHash().increment(couponTemplateCacheKey, "stock", requestParam.getNumber());
-
+        stringRedisTemplate.expire(couponTemplateCacheKey, 30, TimeUnit.MINUTES);
     }
 
     /**
@@ -170,6 +170,9 @@ public class CouponTemplateServiceImpl extends ServiceImpl<CouponTemplateMapper,
                 .eq(CouponTemplateDO::getShopNumber, UserContext.getShopNumber());
 
         CouponTemplateDO couponTemplateDO = couponTemplateMapper.selectOne(wrappers);
+
+        String couponTemplateCacheKey = String.format(MerchantAdminRedisConstant.COUPON_TEMPLATE_KEY, couponTemplateDO.getId());
+        stringRedisTemplate.expire(couponTemplateCacheKey, 30, TimeUnit.MINUTES);
         return BeanUtil.toBean(couponTemplateDO, CouponTemplateQueryRespDTO.class);
     }
 
