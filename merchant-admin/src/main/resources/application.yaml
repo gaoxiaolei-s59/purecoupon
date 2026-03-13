@@ -26,3 +26,9 @@ knife4j:
   enable: true
   setting:
     language: zh_cn
+
+merchant:
+  admin:
+    task:
+      delay:
+        timestamp: 60000

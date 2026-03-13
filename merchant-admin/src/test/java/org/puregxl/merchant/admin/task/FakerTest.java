@@ -22,7 +22,5 @@ public class FakerTest {
         System.out.println("电子邮箱" + email);
     }
 
-    public void testGit() {
 
-    }
 }
