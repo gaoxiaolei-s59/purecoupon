@@ -20,4 +20,6 @@ public interface CouponTemplateService extends IService<CouponTemplateDO> {
     CouponTemplateQueryRespDTO findCouponTemplate(String couponTemplateId);
 
     void terminateCouponTemplate(String couponTemplateId);
+
+
 }

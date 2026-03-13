@@ -1,4 +1,4 @@
-package org.puregxl.merchant.admin.service.filter;
+package org.puregxl.merchant.admin.service.handler.filter;
 
 import com.alibaba.fastjson2.JSON;
 import org.puregxl.framework.exception.ClientException;

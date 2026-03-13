@@ -33,7 +33,7 @@ public class UserConfiguration implements WebMvcConfigurer {
 
         @Override
         public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
-            UserInfoDTO userInfoDto = new UserInfoDTO("1810518709471555585", "gxl", 1810714735922956666L);
+            UserInfoDTO userInfoDto = new UserInfoDTO("1810518709471555585", "gxl", 2031698834727518208L);
             UserContext.setUserContext(userInfoDto);
             return true;
         }

@@ -206,6 +206,9 @@ public class CouponTemplateServiceImpl extends ServiceImpl<CouponTemplateMapper,
 
         CouponTemplateDO couponTemplateDO = couponTemplateMapper.selectOne(wrappers);
 
+        if (couponTemplateDO == null) {
+            throw new ClientException("未能检查到优惠卷的存在，检查信息的合法性");
+        }
         String couponTemplateCacheKey = String.format(MerchantAdminRedisConstant.COUPON_TEMPLATE_KEY, couponTemplateDO.getId());
         stringRedisTemplate.expire(couponTemplateCacheKey, 30, TimeUnit.MINUTES);
         return BeanUtil.toBean(couponTemplateDO, CouponTemplateQueryRespDTO.class);

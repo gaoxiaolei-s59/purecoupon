@@ -1,4 +1,4 @@
-package org.puregxl.merchant.admin.service.filter;
+package org.puregxl.merchant.admin.service.handler.filter;
 
 import cn.hutool.core.util.ObjectUtil;
 import org.puregxl.merchant.admin.common.enums.DiscountTargetEnum;
