@@ -27,7 +27,7 @@ public class RocketMQConstant {
     public static final String COUPON_TOPIC_TASK_GROUP = "one-coupon-merchant-admin-service-task-consumer-group";
 
 
-    public static final String COUPON_ACTUAL_TOPIC_TOPIC = "one-coupon-merchant-admin-service-consumer-group";
+    public static final String COUPON_ACTUAL_TOPIC = "one-coupon-merchant-admin-service-autual-consumer-group";
 
 
     /**

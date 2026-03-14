@@ -15,12 +15,13 @@ import org.puregxl.merchant.admin.dao.entity.CouponTaskDO;
 import org.puregxl.merchant.admin.dao.mapper.CouponTaskMapper;
 import org.puregxl.merchant.admin.dto.req.CouponTaskCreateReqDTO;
 import org.puregxl.merchant.admin.dto.resp.CouponTemplateQueryRespDTO;
+import org.puregxl.merchant.admin.mq.event.CouponTaskExecuteEvent;
 import org.puregxl.merchant.admin.mq.event.CouponTemplateDelayExecuteTaskEvent;
+import org.puregxl.merchant.admin.mq.producer.CouponTaskActualExecuteProducer;
 import org.puregxl.merchant.admin.mq.producer.CouponTemplateDelayExecuteTaskProductor;
 import org.puregxl.merchant.admin.service.CouponTaskService;
 import org.puregxl.merchant.admin.service.CouponTemplateService;
 import org.puregxl.merchant.admin.service.handler.excel.RowCountListener;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -40,9 +41,7 @@ public class CouponTaskServiceImpl extends ServiceImpl<CouponTaskMapper, CouponT
     private final CouponTaskMapper couponTaskMapper;
     private final RocketMQTemplate rocketMQTemplate;
     private final CouponTemplateDelayExecuteTaskProductor couponTemplateDelayExecuteTaskConsumerProductor;
-
-    @Value("${merchant.admin.task.delay.timestamp}")
-    private long delayTimeStamp;
+    private final CouponTaskActualExecuteProducer couponTaskActualExecuteProducer;
 
     /**
      * 创建异步线程池执行任务 加快接口返回速度
@@ -96,30 +95,14 @@ public class CouponTaskServiceImpl extends ServiceImpl<CouponTaskMapper, CouponT
         couponTemplateDelayExecuteTaskConsumerProductor.sendMessage(couponTaskExecuteEvent);
 
 
+        if (Objects.equals(requestParam.getSendType(), CouponTaskSendTypeEnum.IMMEDIATE.getType())) {
+            CouponTaskExecuteEvent build = CouponTaskExecuteEvent.builder()
+                            .couponTaskId(couponTaskDO.getId()).build();
 
-        //如果是立刻发送任务
-//        if (Objects.equals(requestParam.getSendType(), CouponTaskSendTypeEnum.IMMEDIATE.getType())) {
-//            JSONObject noDelaymessageBody = new JSONObject();
-//            messageBody.put("fileAddress", requestParam.getFileAddress());
-//            messageBody.put("couponTaskId", couponTaskDO.getId());
-//
-//            String noDelayMessageKeys = UUID.randomUUID().toString();
-//
-//            Message<JSONObject> noDelayMessage = MessageBuilder
-//                    .withPayload(messageBody)
-//                    .setHeader(MessageConst.PROPERTY_KEYS, noDelayMessageKeys)
-//                    .build();
-//            String couponTemplateDelayCloseTopic = COUPON_TASK_TOPIC;
-//
-//            SendResult sendResults;
-//            try {
-//                //发送延时消息
-//                sendResults = rocketMQTemplate.syncSendDelayTimeMills(couponTemplateDelayCloseTopic, couponTemplateDelayCloseTopic, delayTimeStamp);
-//                log.info("[生产者] 优惠券模板立刻分发逻辑 - 发送结果：{}，消息ID：{}，消息Keys：{}", sendResults.getSendStatus(), sendResults.getMsgId(), messageKeys);
-//            } catch (Exception e) {
-//                log.error("[生产者]-优惠券模板立刻分发逻辑-生产者-发送消息失败，消息体: {}" ,couponTaskDO.getId(), e);
-//            }
-//        }
+            couponTaskActualExecuteProducer.sendMessage(build);
+        } else {
+
+        }
 
     }
 
