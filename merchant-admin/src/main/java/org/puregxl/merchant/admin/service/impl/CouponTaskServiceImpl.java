@@ -115,6 +115,30 @@ public class CouponTaskServiceImpl extends ServiceImpl<CouponTaskMapper, CouponT
             log.error("[生产者]-优惠券模板可靠性处理-生产者-发送消息失败，消息体: {}" ,couponTaskDO.getId(), e);
         }
 
+        //如果是立刻发送任务
+        if (Objects.equals(requestParam.getSendType(), CouponTaskSendTypeEnum.IMMEDIATE.getType())) {
+            JSONObject noDelaymessageBody = new JSONObject();
+            messageBody.put("fileAddress", requestParam.getFileAddress());
+            messageBody.put("couponTaskId", couponTaskDO.getId());
+
+            String noDelayMessageKeys = UUID.randomUUID().toString();
+
+            Message<JSONObject> noDelayMessage = MessageBuilder
+                    .withPayload(messageBody)
+                    .setHeader(MessageConst.PROPERTY_KEYS, noDelayMessageKeys)
+                    .build();
+            String couponTemplateDelayCloseTopic = COUPON_TASK_TOPIC;
+
+            SendResult sendResults;
+            try {
+                //发送延时消息
+                sendResults = rocketMQTemplate.syncSendDelayTimeMills(couponTemplateDelayCloseTopic, couponTemplateDelayCloseTopic, delayTimeStamp);
+                log.info("[生产者] 优惠券模板立刻分发逻辑 - 发送结果：{}，消息ID：{}，消息Keys：{}", sendResults.getSendStatus(), sendResults.getMsgId(), messageKeys);
+            } catch (Exception e) {
+                log.error("[生产者]-优惠券模板立刻分发逻辑-生产者-发送消息失败，消息体: {}" ,couponTaskDO.getId(), e);
+            }
+        }
+
     }
 
     /**
