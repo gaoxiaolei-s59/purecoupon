@@ -11,6 +11,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.apache.rocketmq.common.message.Message;
 import org.junit.jupiter.api.Test;
 
 import java.nio.file.Paths;
@@ -45,6 +46,8 @@ public class ExcelGenerateTests {
                     .build();
             list.add(data);
         }
+
+        Message msg = new Message("OrderTopic", "Create", "order-1001 created".getBytes());
         return list;
     }
 
