@@ -3,12 +3,9 @@ package org.puregxl.merchant.admin.service.impl;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.IdUtil;
 import com.alibaba.excel.EasyExcel;
-import com.alibaba.fastjson2.JSONObject;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.rocketmq.client.producer.SendResult;
-import org.apache.rocketmq.common.message.MessageConst;
 import org.apache.rocketmq.spring.core.RocketMQTemplate;
 import org.puregxl.framework.exception.ClientException;
 import org.puregxl.merchant.admin.common.context.UserContext;
@@ -18,23 +15,20 @@ import org.puregxl.merchant.admin.dao.entity.CouponTaskDO;
 import org.puregxl.merchant.admin.dao.mapper.CouponTaskMapper;
 import org.puregxl.merchant.admin.dto.req.CouponTaskCreateReqDTO;
 import org.puregxl.merchant.admin.dto.resp.CouponTemplateQueryRespDTO;
+import org.puregxl.merchant.admin.mq.event.CouponTemplateDelayExecuteTaskEvent;
+import org.puregxl.merchant.admin.mq.producer.CouponTemplateDelayExecuteTaskProductor;
 import org.puregxl.merchant.admin.service.CouponTaskService;
 import org.puregxl.merchant.admin.service.CouponTemplateService;
 import org.puregxl.merchant.admin.service.handler.excel.RowCountListener;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.messaging.Message;
-import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Objects;
-import java.util.UUID;
 import java.util.concurrent.Executor;
 import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
-
-import static org.puregxl.merchant.admin.common.constant.RocketMQConstant.COUPON_TASK_TOPIC;
 
 @Service
 @RequiredArgsConstructor
@@ -45,6 +39,7 @@ public class CouponTaskServiceImpl extends ServiceImpl<CouponTaskMapper, CouponT
     private final CouponTemplateService couponTemplateService;
     private final CouponTaskMapper couponTaskMapper;
     private final RocketMQTemplate rocketMQTemplate;
+    private final CouponTemplateDelayExecuteTaskProductor couponTemplateDelayExecuteTaskConsumerProductor;
 
     @Value("${merchant.admin.task.delay.timestamp}")
     private long delayTimeStamp;
@@ -94,50 +89,37 @@ public class CouponTaskServiceImpl extends ServiceImpl<CouponTaskMapper, CouponT
         executor.execute(() -> refreshCouponTaskNum(requestParam.getFileAddress(), couponTaskDO.getId()));
 
         //使用mq延时队列保证宕机后的逻辑可恢复制性
-        JSONObject messageBody = new JSONObject();
-        messageBody.put("fileAddress", requestParam.getFileAddress());
-        messageBody.put("couponTaskId", couponTaskDO.getId());
-
-        String messageKeys = UUID.randomUUID().toString();
-
-        Message<JSONObject> message = MessageBuilder
-                .withPayload(messageBody)
-                .setHeader(MessageConst.PROPERTY_KEYS, messageKeys)
+        CouponTemplateDelayExecuteTaskEvent couponTaskExecuteEvent = CouponTemplateDelayExecuteTaskEvent.builder()
+                .couponTaskId(couponTaskDO.getId())
+                .fileAddress(requestParam.getFileAddress())
                 .build();
-        String topic = COUPON_TASK_TOPIC;
+        couponTemplateDelayExecuteTaskConsumerProductor.sendMessage(couponTaskExecuteEvent);
 
-        SendResult sendResult;
-        try {
-            //发送延时消息
-            sendResult = rocketMQTemplate.syncSendDelayTimeMills(topic, message, delayTimeStamp);
-            log.info("[生产者] 优惠券模板可靠性处理 - 发送结果：{}，消息ID：{}，消息Keys：{}", sendResult.getSendStatus(), sendResult.getMsgId(), messageKeys);
-        } catch (Exception e) {
-            log.error("[生产者]-优惠券模板可靠性处理-生产者-发送消息失败，消息体: {}" ,couponTaskDO.getId(), e);
-        }
+
 
         //如果是立刻发送任务
-        if (Objects.equals(requestParam.getSendType(), CouponTaskSendTypeEnum.IMMEDIATE.getType())) {
-            JSONObject noDelaymessageBody = new JSONObject();
-            messageBody.put("fileAddress", requestParam.getFileAddress());
-            messageBody.put("couponTaskId", couponTaskDO.getId());
-
-            String noDelayMessageKeys = UUID.randomUUID().toString();
-
-            Message<JSONObject> noDelayMessage = MessageBuilder
-                    .withPayload(messageBody)
-                    .setHeader(MessageConst.PROPERTY_KEYS, noDelayMessageKeys)
-                    .build();
-            String couponTemplateDelayCloseTopic = COUPON_TASK_TOPIC;
-
-            SendResult sendResults;
-            try {
-                //发送延时消息
-                sendResults = rocketMQTemplate.syncSendDelayTimeMills(couponTemplateDelayCloseTopic, couponTemplateDelayCloseTopic, delayTimeStamp);
-                log.info("[生产者] 优惠券模板立刻分发逻辑 - 发送结果：{}，消息ID：{}，消息Keys：{}", sendResults.getSendStatus(), sendResults.getMsgId(), messageKeys);
-            } catch (Exception e) {
-                log.error("[生产者]-优惠券模板立刻分发逻辑-生产者-发送消息失败，消息体: {}" ,couponTaskDO.getId(), e);
-            }
-        }
+//        if (Objects.equals(requestParam.getSendType(), CouponTaskSendTypeEnum.IMMEDIATE.getType())) {
+//            JSONObject noDelaymessageBody = new JSONObject();
+//            messageBody.put("fileAddress", requestParam.getFileAddress());
+//            messageBody.put("couponTaskId", couponTaskDO.getId());
+//
+//            String noDelayMessageKeys = UUID.randomUUID().toString();
+//
+//            Message<JSONObject> noDelayMessage = MessageBuilder
+//                    .withPayload(messageBody)
+//                    .setHeader(MessageConst.PROPERTY_KEYS, noDelayMessageKeys)
+//                    .build();
+//            String couponTemplateDelayCloseTopic = COUPON_TASK_TOPIC;
+//
+//            SendResult sendResults;
+//            try {
+//                //发送延时消息
+//                sendResults = rocketMQTemplate.syncSendDelayTimeMills(couponTemplateDelayCloseTopic, couponTemplateDelayCloseTopic, delayTimeStamp);
+//                log.info("[生产者] 优惠券模板立刻分发逻辑 - 发送结果：{}，消息ID：{}，消息Keys：{}", sendResults.getSendStatus(), sendResults.getMsgId(), messageKeys);
+//            } catch (Exception e) {
+//                log.error("[生产者]-优惠券模板立刻分发逻辑-生产者-发送消息失败，消息体: {}" ,couponTaskDO.getId(), e);
+//            }
+//        }
 
     }
 

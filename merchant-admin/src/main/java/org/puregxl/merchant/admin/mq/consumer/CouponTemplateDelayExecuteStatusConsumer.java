@@ -29,11 +29,16 @@ public class CouponTemplateDelayExecuteStatusConsumer implements RocketMQListene
 
     /**
      * 设置消息的状态为不可用
-     * @param message
      */
     @Override
-    public void onMessage(JSONObject message) {
-        log.info("[消费者]-定时设置优惠卷过期-执行消费逻辑, 消息体: {}", message.toString());
+    public void onMessage(JSONObject messageWrapper) {
+        log.info("[消费者]-定时设置优惠卷过期-执行消费逻辑, 消息体: {}", messageWrapper.toString());
+        JSONObject message = messageWrapper.getJSONObject("message");
+        if (message == null) {
+            log.warn("[消费者]-定时设置优惠卷过期-消息体异常，缺少message节点: {}", messageWrapper);
+            return;
+        }
+        
         LambdaUpdateWrapper<CouponTemplateDO> updateWrapper = Wrappers.lambdaUpdate(CouponTemplateDO.class)
                 .eq(CouponTemplateDO::getShopNumber, message.getLong("shopNumber"))
                 .eq(CouponTemplateDO::getId, message.getLong("couponTemplateId"))

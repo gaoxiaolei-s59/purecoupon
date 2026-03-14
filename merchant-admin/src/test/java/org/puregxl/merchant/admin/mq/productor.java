@@ -6,6 +6,8 @@ import org.apache.rocketmq.client.producer.SendResult;
 import org.apache.rocketmq.common.message.MessageConst;
 import org.apache.rocketmq.spring.core.RocketMQTemplate;
 import org.junit.jupiter.api.Test;
+import org.puregxl.merchant.admin.mq.event.CouponTemplateDelayEvent;
+import org.puregxl.merchant.admin.mq.producer.CouponTemplateDelayExecuteStatusProductor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.messaging.Message;
@@ -23,13 +25,17 @@ public class productor {
     @Autowired
     private RocketMQTemplate rocketMQTemplate;
 
+    @Autowired
+    private  CouponTemplateDelayExecuteStatusProductor couponTemplateDelayExecuteStatusProductor;
+
+
     @Test
     public void main() {
         String couponTemplateDelayCloseTopic = COUPON_TOPIC;
 
         JSONObject messageBody = new JSONObject();
-        messageBody.put("couponTemplateId", "2031698834817851398");
-        messageBody.put("shopNumber", "2031698834727555072");
+        messageBody.put("couponTemplateId", "2031698834817851397");
+        messageBody.put("shopNumber", "2031698834727550976");
         //构建消息体
 
         String messageKeys = UUID.randomUUID().toString();
@@ -47,4 +53,19 @@ public class productor {
             log.error("[生产者]-优惠卷模版-生产者-发送消息失败，消息体: {}" ,"123456789", e);
         }
     }
+
+    @Test
+    public void main1() {
+
+        CouponTemplateDelayEvent couponTemplateDelayEvent = CouponTemplateDelayEvent.builder()
+                .shopNumber(2031698838573715456L)
+                .couponTemplateId(2031698838575947784L)
+                .delayTime(System.currentTimeMillis() + 10_000).build();
+
+        couponTemplateDelayExecuteStatusProductor.sendMessage(couponTemplateDelayEvent);
+
+    }
+
+
+
 }

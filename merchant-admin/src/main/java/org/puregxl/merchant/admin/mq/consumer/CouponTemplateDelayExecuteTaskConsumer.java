@@ -30,11 +30,15 @@ public class CouponTemplateDelayExecuteTaskConsumer implements RocketMQListener<
 
     /**
      * 消费消息 检查是否正确处理逻辑 否则执行重试逻辑
-     * @param message
      */
     @Override
-    public void onMessage(JSONObject message) {
-        log.info("[消费者]-优惠卷传播可靠处理-执行消费逻辑, 消息体: {}", message.toString());
+    public void onMessage(JSONObject messageWrapper) {
+        log.info("[消费者]-优惠卷传播可靠处理-执行消费逻辑, 消息体: {}", messageWrapper.toString());
+        JSONObject message = messageWrapper.getJSONObject("message");
+        if (message == null) {
+            log.warn("[消费者]-优惠券传播可靠处理-消息体异常，缺少message节点: {}", messageWrapper);
+            return;
+        }
         String fileAddress = message.getString("fileAddress");
         Long couponTaskId = message.getLong("couponTaskId");
 
