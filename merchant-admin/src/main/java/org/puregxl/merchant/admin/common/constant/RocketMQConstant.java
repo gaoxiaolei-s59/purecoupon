@@ -27,13 +27,16 @@ public class RocketMQConstant {
     public static final String COUPON_TOPIC_TASK_GROUP = "one-coupon-merchant-admin-service-task-consumer-group";
 
 
-    public static final String COUPON_ACTUAL_TOPIC = "one-coupon-merchant-admin-service-autual-consumer-group";
+    /**
+     * 消费者组 （立即发送优惠卷）
+     */
+    public static final String COUPON_ACTUAL_TOPIC = "one-coupon-merchant-admin-service-actual-consumer-topic";
 
 
     /**
-     * 消费者组 （延迟队列topic - 立刻发送优惠卷）
+     * 消费者组 （立刻发送优惠卷）
      */
-    public static final String COUPON_ACTUAL_TOPIC_GROUP = "one-coupon-merchant-admin-service-consumer-group";
+    public static final String COUPON_ACTUAL_TOPIC_GROUP = "one-coupon-merchant-admin-service-actual-consumer-group";
 
 
 }
