@@ -18,5 +18,6 @@
         SET stock = stock - #{number}
         WHERE shop_number = #{shopNumber}
           AND id = #{couponTemplateId}
+        AND stock > #{number}
     </update>
 </mapper>
