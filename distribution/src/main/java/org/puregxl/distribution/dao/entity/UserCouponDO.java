@@ -83,4 +83,10 @@ public class UserCouponDO {
      */
     @TableField(fill = FieldFill.INSERT)
     private Integer delFlag;
+
+    /**
+     * 用户数据所在的行数
+     */
+    @TableField(exist = false)
+    private Integer rowNum;
 }

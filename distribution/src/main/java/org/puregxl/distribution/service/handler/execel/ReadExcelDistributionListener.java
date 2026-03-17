@@ -15,9 +15,8 @@ import org.puregxl.distribution.dao.entity.CouponTaskDO;
 import org.puregxl.distribution.dao.entity.CouponTaskFailDO;
 import org.puregxl.distribution.dao.entity.CouponTemplateDO;
 import org.puregxl.distribution.dao.mapper.CouponTaskFailMapper;
-import org.puregxl.distribution.dao.mapper.CouponTaskMapper;
-import org.puregxl.distribution.dao.mapper.UserCouponMapper;
 import org.puregxl.distribution.mq.event.CouponTemplateDistributionEvent;
+import org.puregxl.distribution.mq.producter.CouponExecuteDistributionProducer;
 import org.puregxl.distribution.toolkit.StockDecrementReturnCombinedUtil;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -36,10 +35,9 @@ public class ReadExcelDistributionListener extends AnalysisEventListener<CouponT
     private final CouponTaskDO couponTaskDO;
     private final CouponTemplateDO couponTemplateDO;
     private final StringRedisTemplate stringRedisTemplate;
-    private final UserCouponMapper userCouponMapper;
     private final Long couponTaskId;
-    private final CouponTaskMapper couponTaskMapper;
     private final CouponTaskFailMapper couponTaskFailMapper;
+    private final CouponExecuteDistributionProducer couponExecuteDistributionProducer;
 
     private int rowCount = 1;
     private static final String STOCK_DECREMENT_AND_BATCH_SAVE_USER_RECORD_LUA_PATH = "lua/stock_decrement_and_batch_save_user_record.lua";
@@ -89,7 +87,7 @@ public class ReadExcelDistributionListener extends AnalysisEventListener<CouponT
             MapBuilder<Object, Object> causeMap = MapUtil.builder()
                     .put("rowCount", rowCount + 1)
                     .put("cause", "优惠券模板无库存");
-
+            rowCount++;
             CouponTaskFailDO couponTaskFailDO = CouponTaskFailDO.builder()
                     .batchId(couponTaskDO.getBatchId())
                     .jsonObject(JSONUtil.toJsonStr(causeMap)).build();
@@ -110,7 +108,7 @@ public class ReadExcelDistributionListener extends AnalysisEventListener<CouponT
         }
 
         //执行到这里说明 - 操作以及全部完成 - 执行下一步落库逻辑
-        CouponTemplateDistributionEvent build = CouponTemplateDistributionEvent.builder()
+        CouponTemplateDistributionEvent couponTemplateExecuteEvent = CouponTemplateDistributionEvent.builder()
                 .couponTaskId(couponTaskId)
                 .couponTaskBatchId(couponTaskDO.getBatchId())
                 .couponTemplateId(couponTemplateDO.getId())
@@ -123,13 +121,15 @@ public class ReadExcelDistributionListener extends AnalysisEventListener<CouponT
                 .batchUserSetSize(batchUserSetSize)
                 .distributionEndFlag(Boolean.FALSE)
                 .build();
+
+        couponExecuteDistributionProducer.sendMessage(couponTemplateExecuteEvent);
         stringRedisTemplate.opsForValue().set(TemplateTaskExecuteProgressKey, String.valueOf(rowCount));
         ++rowCount;
     }
 
     @Override
     public void doAfterAllAnalysed(AnalysisContext analysisContext) {
-        CouponTemplateDistributionEvent build = CouponTemplateDistributionEvent.builder()
+        CouponTemplateDistributionEvent couponTemplateExecuteEvent = CouponTemplateDistributionEvent.builder()
                 .couponTaskId(couponTaskId)
                 .couponTaskBatchId(couponTaskDO.getBatchId())
                 .couponTemplateId(couponTemplateDO.getId())
@@ -138,7 +138,8 @@ public class ReadExcelDistributionListener extends AnalysisEventListener<CouponT
                 .couponTemplateConsumeRule(couponTemplateDO.getConsumeRule())
                 .distributionEndFlag(Boolean.TRUE)
                 .build();
-//        couponExecuteDistributionProducer.sendMessage(couponTemplateExecuteEvent);
+        couponExecuteDistributionProducer.sendMessage(couponTemplateExecuteEvent);
     }
+
     
 }
