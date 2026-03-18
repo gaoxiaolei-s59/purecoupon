@@ -63,7 +63,7 @@ public class CouponExecuteDistributionConsumer implements RocketMQListener<Messa
     private final CouponTemplateMapper couponTemplateMapper;
     private final UserCouponMapper userCouponMapper;
     private final CouponTaskMapper couponTaskMapper;
-    private static final String BATCH_SAVE_USER_COUPON_LUA_PATH = "lua/batch_user_coupon_list";
+    private static final String BATCH_SAVE_USER_COUPON_LUA_PATH = "lua/batch_user_coupon_list.lua";
 
     @Lazy
     @Autowired
@@ -188,8 +188,13 @@ public class CouponExecuteDistributionConsumer implements RocketMQListener<Messa
                 // 为什么要进行替换 %s 为空白字符串？因为后续代码需要使用 %s 进行动态值替换，但是当前 LUA 脚本中不需要，所以为了兼容后续不改动特此替换
                 StrUtil.replace(EngineRedisConstant.USER_COUPON_TEMPLATE_LIST_KEY, "%s", "")
         );
-        List<String> args = ListUtil.of(JSONUtil.toJsonStr(userIDList), JSONUtil.toJsonStr(couponIdList), String.valueOf(new Date().getTime()));
-        stringRedisTemplate.execute(buildLuaScript, keys, args);
+        List<String> args = ListUtil.of(
+                JSONUtil.toJsonStr(userIDList),
+                JSONUtil.toJsonStr(couponIdList),
+                String.valueOf(new Date().getTime())
+        );
+
+        stringRedisTemplate.execute(buildLuaScript, keys, args.toArray());
 
     }
 

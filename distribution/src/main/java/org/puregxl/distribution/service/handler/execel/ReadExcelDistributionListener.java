@@ -2,7 +2,6 @@ package org.puregxl.distribution.service.handler.execel;
 
 import cn.hutool.core.collection.ListUtil;
 import cn.hutool.core.lang.Singleton;
-import cn.hutool.core.map.MapBuilder;
 import cn.hutool.core.map.MapUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
@@ -42,7 +41,7 @@ public class ReadExcelDistributionListener extends AnalysisEventListener<CouponT
     private int rowCount = 1;
     private static final String STOCK_DECREMENT_AND_BATCH_SAVE_USER_RECORD_LUA_PATH = "lua/stock_decrement_and_batch_save_user_record.lua";
 
-    private static final int BATCH_USER_COUPON_SIZE = 5000;
+    private static final int BATCH_USER_COUPON_SIZE = 10;
     @Transactional(rollbackFor = Exception.class)
     @Override
     public void invoke(CouponTaskExcelObject couponTaskExcelObject, AnalysisContext analysisContext) {
@@ -84,9 +83,10 @@ public class ReadExcelDistributionListener extends AnalysisEventListener<CouponT
         if (!extractFirstField) {
             //同步缓存中的数据
             stringRedisTemplate.opsForValue().set(TemplateTaskExecuteProgressKey, String.valueOf(rowCount));
-            MapBuilder<Object, Object> causeMap = MapUtil.builder()
+            Map<Object, Object> causeMap = MapUtil.builder()
                     .put("rowCount", rowCount + 1)
-                    .put("cause", "优惠券模板无库存");
+                    .put("cause", "优惠券模板无库存")
+                    .build();
             rowCount++;
             CouponTaskFailDO couponTaskFailDO = CouponTaskFailDO.builder()
                     .batchId(couponTaskDO.getBatchId())
@@ -99,9 +99,9 @@ public class ReadExcelDistributionListener extends AnalysisEventListener<CouponT
         int batchUserSetSize = StockDecrementReturnCombinedUtil.extractSecondField(execute.intValue());
 
         /*
-           如果用户行数不等于总条数, 先同步进度 （batchUserSetSize = BATCH_USER_COUPON_SIZE）
+           只有首次攒满一个批次时才触发下游分发，避免 Set 大于 5000 后重复发送消息。
          */
-        if (batchUserSetSize < BATCH_USER_COUPON_SIZE) {
+        if (batchUserSetSize != BATCH_USER_COUPON_SIZE) {
             stringRedisTemplate.opsForValue().set(TemplateTaskExecuteProgressKey, String.valueOf(rowCount));
             rowCount++;
             return;
