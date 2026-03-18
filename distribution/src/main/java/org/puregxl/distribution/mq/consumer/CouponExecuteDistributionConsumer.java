@@ -122,6 +122,8 @@ public class CouponExecuteDistributionConsumer implements RocketMQListener<Messa
 
         couponTaskMapper.updateById(couponTaskDO);
 
+        clearCouponTaskRedisCache(message.getCouponTaskId());
+
     }
 
     /**
@@ -255,6 +257,13 @@ public class CouponExecuteDistributionConsumer implements RocketMQListener<Messa
                 .eq(UserCouponDO::getCouponTemplateId, couponTemplateId)
                 .eq(UserCouponDO::getUserId, userId);
         return userCouponMapper.selectOne(userCouponDOLambdaQueryWrapper) != null;
+    }
+
+    private void clearCouponTaskRedisCache(Long couponTaskId) {
+        String progressKey = String.format(DistributionRedisConstant.TEMPLATE_TASK_EXECUTE_PROGRESS_KEY, couponTaskId);
+        String batchUserSetKey = String.format(DistributionRedisConstant.TEMPLATE_TASK_EXECUTE_BATCH_USER_KEY, couponTaskId);
+        stringRedisTemplate.delete(List.of(progressKey, batchUserSetKey));
+        log.info("[消费者] 优惠券任务执行推送@分发到用户账号 - 清理任务缓存完成, couponTaskId: {}", couponTaskId);
     }
 
     private Integer decrementCouponTemplateStock(CouponTemplateDistributionEvent event, Integer decrementStockSize) {
