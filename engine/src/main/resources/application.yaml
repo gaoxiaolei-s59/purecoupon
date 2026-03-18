@@ -20,3 +20,9 @@ rocketmq:
 
 server:
   port: 10020
+
+one-coupon:
+  user-coupon-list:
+    save-cache:
+      type: direct
+

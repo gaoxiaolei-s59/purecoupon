@@ -39,4 +39,7 @@ public class RocketMQConstant {
     public static final String COUPON_ACTUAL_TOPIC_GROUP = "one-coupon-merchant-admin-service-actual-consumer-group";
 
 
+    public static final String COUPON_ENGINE_SERVICE_SUER_DELAY_CLOSE = "one-coupon_engine-service_user-coupon-delay-close_topic";
+
+
 }
