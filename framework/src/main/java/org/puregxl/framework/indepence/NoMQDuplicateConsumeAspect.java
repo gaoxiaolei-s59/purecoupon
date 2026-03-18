@@ -33,7 +33,7 @@ public class NoMQDuplicateConsumeAspect {
      * 增强方法标记 {@link NoMQDuplicateConsume} 注解逻辑`
      */
     @Around("@annotation(org.puregxl.framework.indepence.NoMQDuplicateConsume)")
-    public Object noMQRepeatConsume(ProceedingJoinPoint joinPoint) throws Exception{
+    public Object noMQRepeatConsume(ProceedingJoinPoint joinPoint) throws Throwable {
         NoMQDuplicateConsume noMQDuplicateConsume = getAnnotation(joinPoint);
         //先获取唯一key
         String uniqueKey = noMQDuplicateConsume.keyPrefix() + SpELUtil.parseKey(noMQDuplicateConsume.key(), ((MethodSignature) joinPoint.getSignature()).getMethod(), joinPoint.getArgs());
@@ -61,7 +61,7 @@ public class NoMQDuplicateConsumeAspect {
         } catch (Throwable e) {
             //删除唯一标识key
             stringRedisTemplate.delete(uniqueKey);
-            throw new RuntimeException(e);
+            throw e;
         }
 
         return result;

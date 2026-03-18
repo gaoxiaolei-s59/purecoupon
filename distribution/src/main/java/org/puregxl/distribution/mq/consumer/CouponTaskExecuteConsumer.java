@@ -21,6 +21,7 @@ import org.puregxl.distribution.mq.event.CouponTaskExecuteEvent;
 import org.puregxl.distribution.mq.producter.CouponExecuteDistributionProducer;
 import org.puregxl.distribution.service.handler.execel.CouponTaskExcelObject;
 import org.puregxl.distribution.service.handler.execel.ReadExcelDistributionListener;
+import org.puregxl.framework.indepence.NoMQDuplicateConsume;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
 
@@ -41,6 +42,11 @@ public class CouponTaskExecuteConsumer implements RocketMQListener<MessageWrappe
     private final CouponTaskFailMapper couponTaskFailMapper;
     private final CouponExecuteDistributionProducer couponExecuteDistributionProducer;
 
+    @NoMQDuplicateConsume(
+            keyPrefix = "coupon_task_execute_idempotent",
+            key = "#messageWrapper.message.couponTaskId",
+            keyTimeout = 120
+    )
     @Override
     public void onMessage(MessageWrapper<CouponTaskExecuteEvent> messageWrapper) {
         log.info("[消费者] 优惠券推送任务正式执行 - 执行消费逻辑，消息体：{}", JSON.toJSONString(messageWrapper));
