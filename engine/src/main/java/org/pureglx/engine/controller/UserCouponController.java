@@ -1,5 +1,6 @@
 package org.pureglx.engine.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.pureglx.engine.dto.req.CouponTemplateRedeemReqDTO;
@@ -20,7 +21,8 @@ public class UserCouponController {
 
     private final UserCouponService userCouponService;
 
-    @PostMapping("")
+    @Operation(summary = "兑换优惠券模板", description = "存在较高流量场景，可类比“秒杀”业务")
+    @PostMapping("/api/engine/user-coupon/redeem")
     public Result<Void> redeemUserCoupon(@RequestBody CouponTemplateRedeemReqDTO requestParam) {
         userCouponService.redeemUserCoupon(requestParam);
         return Results.success();

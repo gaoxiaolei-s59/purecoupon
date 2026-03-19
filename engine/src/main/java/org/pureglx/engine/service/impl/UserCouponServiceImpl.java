@@ -70,10 +70,10 @@ public class UserCouponServiceImpl extends ServiceImpl<UserCouponMapper, UserCou
             throw new ClientException("用户卷不存在 检查数据的合法性");
         }
         //检查当前时间是否合法
-        boolean isInTime = DateUtil.isIn(new Date(), couponTemplate.getValidStartTime(), couponTemplate.getValidEndTime());
-        if (!isInTime) {
-            throw new ClientException("不满足优惠卷过期时间");
-        }
+//        boolean isInTime = DateUtil.isIn(new Date(), couponTemplate.getValidStartTime(), couponTemplate.getValidEndTime());
+//        if (!isInTime) {
+//            throw new ClientException("不满足优惠卷使用时间");
+//        }
 
         /**
          * 获取消耗规则的每人限制领取数量
