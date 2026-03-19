@@ -25,7 +25,9 @@ import org.pureglx.engine.dto.req.CouponTemplateQueryReqDTO;
 import org.pureglx.engine.dto.req.CouponTemplateRedeemReqDTO;
 import org.pureglx.engine.dto.resp.CouponTemplateQueryRespDTO;
 import org.pureglx.engine.mq.event.UserCouponDelayCloseEvent;
+import org.pureglx.engine.mq.event.UserCouponRedeemEvent;
 import org.pureglx.engine.mq.producer.UserCouponDelayCloseProducer;
+import org.pureglx.engine.mq.producer.UserCouponRedeemEventProducer;
 import org.pureglx.engine.service.CouponTemplateService;
 import org.pureglx.engine.service.UserCouponService;
 import org.puregxl.framework.exception.ClientException;
@@ -55,6 +57,7 @@ public class UserCouponServiceImpl extends ServiceImpl<UserCouponMapper, UserCou
     private final CouponTemplateMapper couponTemplateMapper;
     private final UserCouponMapper userCouponMapper;
     private final UserCouponDelayCloseProducer userCouponDelayCloseProducer;
+    private final UserCouponRedeemEventProducer userCouponRedeemEventProducer;
 
     @Value("${one-coupon.user-coupon-list.save-cache.type}")
     private String userCouponListSaveCacheType;
@@ -70,10 +73,10 @@ public class UserCouponServiceImpl extends ServiceImpl<UserCouponMapper, UserCou
             throw new ClientException("用户卷不存在 检查数据的合法性");
         }
         //检查当前时间是否合法
-//        boolean isInTime = DateUtil.isIn(new Date(), couponTemplate.getValidStartTime(), couponTemplate.getValidEndTime());
-//        if (!isInTime) {
-//            throw new ClientException("不满足优惠卷使用时间");
-//        }
+        boolean isInTime = DateUtil.isIn(new Date(), couponTemplate.getValidStartTime(), couponTemplate.getValidEndTime());
+        if (!isInTime) {
+            throw new ClientException("不满足优惠卷使用时间");
+        }
 
         /**
          * 获取消耗规则的每人限制领取数量
@@ -195,5 +198,83 @@ public class UserCouponServiceImpl extends ServiceImpl<UserCouponMapper, UserCou
             }
         });
     }
+
+    /**
+     * 基于消息队列重构的v2版本
+     * @param requestParam
+     */
+    @Override
+    public void redeemUserCouponByMQ(CouponTemplateRedeemReqDTO requestParam) {
+        //查询卷是否存在
+        CouponTemplateQueryRespDTO couponTemplate = couponTemplateService.findCouponTemplate(BeanUtil.toBean(requestParam, CouponTemplateQueryReqDTO.class));
+        if (couponTemplate == null) {
+            throw new ClientException("用户卷不存在 检查数据的合法性");
+        }
+        //检查当前时间是否合法
+        boolean isInTime = DateUtil.isIn(new Date(), couponTemplate.getValidStartTime(), couponTemplate.getValidEndTime());
+        if (!isInTime) {
+            throw new ClientException("不满足优惠卷使用时间");
+        }
+
+        /**
+         * 获取消耗规则的每人限制领取数量
+         */
+        JSONObject jsonObject = JSON.parseObject(couponTemplate.getReceiveRule());
+        String limitPerPerson = jsonObject.getString("limitPerPerson");
+        String couponTemplateCacheKey = String.format(EngineRedisConstant.COUPON_TEMPLATE_KEY, requestParam.getCouponTemplateId());
+        String userCouponTemplateLimitCacheKey = String.format(EngineRedisConstant.USER_COUPON_TEMPLATE_LIMIT_KEY, UserContext.getUserId(), requestParam.getCouponTemplateId());
+
+        //lua脚本 基于给出的key判断当前用户有没有领取条件 如果有加入到redis重 没有的话返回false 和 用户领取的次数 正常扣减库存
+        DefaultRedisScript<List> redisScript = Singleton.get(STOCK_DECREMENT_AND_SAVE_USER_RECEIVE_LUA_PATH, () -> {
+            DefaultRedisScript<List> defaultRedisScript = new DefaultRedisScript<>();
+            defaultRedisScript.setScriptSource(
+                    new ResourceScriptSource(new ClassPathResource(STOCK_DECREMENT_AND_SAVE_USER_RECEIVE_LUA_PATH))
+            );
+            defaultRedisScript.setResultType(List.class);
+            return defaultRedisScript;
+        });
+
+
+        long expireSeconds = Math.max(
+                1,
+                (couponTemplate.getValidEndTime().getTime() - System.currentTimeMillis()) / 1000
+        );
+        List result = stringRedisTemplate.execute(
+                redisScript,
+                ListUtil.of(couponTemplateCacheKey, userCouponTemplateLimitCacheKey),
+                String.valueOf(expireSeconds), limitPerPerson
+        );
+
+        if (result == null || result.size() < 2) {
+            throw new ClientException("Lua script return result is invalid");
+        }
+
+        /**
+         * -- {0, count} 成功，count 为领取后的次数
+         * -- {1, 0}     库存不足
+         * -- {2, count} 达到上限，count 为当前已领取次数
+         */
+        int code = ((Number) result.get(0)).intValue();
+        int count = ((Number) result.get(1)).intValue();
+
+        if (RedisStockDecrementErrorEnum.isFail(code)) {
+            throw new ServiceException(RedisStockDecrementErrorEnum.formFailMessage(code));
+        }
+
+        UserCouponRedeemEvent userCouponRedeemEvent = UserCouponRedeemEvent.builder()
+                .requestParam(requestParam)
+                .receiveCount(count)
+                .couponTemplate(couponTemplate)
+                .userId(UserContext.getUserId()).build();
+
+        SendResult sendResult = userCouponRedeemEventProducer.sendMessage(userCouponRedeemEvent);
+
+        if (ObjectUtil.notEqual(sendResult.getSendStatus().name(), "SEND_OK")) {
+            log.warn("发送优惠券兑换消息失败，消息参数：{}", JSON.toJSONString(userCouponRedeemEvent));
+        }
+    }
+
+
+
 
 }

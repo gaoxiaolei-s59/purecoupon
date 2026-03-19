@@ -22,9 +22,16 @@ public class UserCouponController {
     private final UserCouponService userCouponService;
 
     @Operation(summary = "兑换优惠券模板", description = "存在较高流量场景，可类比“秒杀”业务")
-    @PostMapping("/api/engine/user-coupon/redeem")
+    @PostMapping("/api/engine/user-coupon/redeem-v1")
     public Result<Void> redeemUserCoupon(@RequestBody CouponTemplateRedeemReqDTO requestParam) {
         userCouponService.redeemUserCoupon(requestParam);
+        return Results.success();
+    }
+
+    @Operation(summary = "兑换优惠券模板(消息队列)", description = "存在较高流量场景，可类比“秒杀”业务")
+    @PostMapping("/api/engine/user-coupon/redeem-v2")
+    public Result<Void> redeemUserCouponByMQ(@RequestBody CouponTemplateRedeemReqDTO requestParam) {
+        userCouponService.redeemUserCouponByMQ(requestParam);
         return Results.success();
     }
 

@@ -4,42 +4,23 @@ package org.pureglx.engine.common.constant;
  * 消息队列常量
  */
 public class RocketMQConstant {
-    /**
-     * 延迟队列topic - 用于处理优惠卷的过期
-     */
-    public static final String COUPON_TOPIC = "one-coupon-merchant-admin-service-delay-topic";
-
 
     /**
-     * 消费者组 （延迟队列topic - 用于处理优惠卷的过期）
+     * 延迟关闭消息队列
      */
-    public static final String COUPON_TOPIC_GROUP = "one-coupon-merchant-admin-service-consumer-group";
-
-    /**
-     * 延迟队列 - 用于处理可靠传输
-     */
-    public static final String COUPON_TASK_TOPIC = "one-coupon-merchant-admin-service-delay-task-topic";
-
-
-    /**
-     * 消费者组 （延迟队列topic - 用于处理优惠卷的过期）
-     */
-    public static final String COUPON_TOPIC_TASK_GROUP = "one-coupon-merchant-admin-service-task-consumer-group";
-
-
-    /**
-     * 消费者组 （立即发送优惠卷）
-     */
-    public static final String COUPON_ACTUAL_TOPIC = "one-coupon-merchant-admin-service-actual-consumer-topic";
-
-
-    /**
-     * 消费者组 （立刻发送优惠卷）
-     */
-    public static final String COUPON_ACTUAL_TOPIC_GROUP = "one-coupon-merchant-admin-service-actual-consumer-group";
-
-
     public static final String COUPON_ENGINE_SERVICE_SUER_DELAY_CLOSE = "one-coupon_engine-service_user-coupon-delay-close_topic";
+
+
+    /**
+     * 延迟关闭消费者组
+     */
+    public static final String COUPON_ENGINE_SERVICE_SUER_DELAY_CLOSE_GROUP = "one-coupon_engine-service_user-coupon-delay-close_topic_group";
+
+
+    public static final String COUPON_ENGINE_SERVICE_SUER_REDEEM_CLOSE_TOPIC = "one-coupon_engine-service_coupon-redeem_topic";
+
+
+    public static final String COUPON_ENGINE_SERVICE_SUER_REDEEM_CLOSE_GROUP = "one-coupon_engine-service_coupon-redeem_group";
 
 
 }
