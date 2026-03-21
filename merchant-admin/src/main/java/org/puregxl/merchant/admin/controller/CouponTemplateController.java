@@ -14,7 +14,6 @@ import org.puregxl.merchant.admin.dto.req.CouponTemplateSaveReqDTO;
 import org.puregxl.merchant.admin.dto.resp.CouponTemplatePageRespDTO;
 import org.puregxl.merchant.admin.dto.resp.CouponTemplateQueryRespDTO;
 import org.puregxl.merchant.admin.service.CouponTemplateService;
-import org.springframework.context.MessageSource;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -26,7 +25,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class CouponTemplateController {
 
     private final CouponTemplateService couponTemplateService;
-    private final MessageSource messageSource;
+
 
 
     /**

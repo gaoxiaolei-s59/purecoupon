@@ -10,7 +10,6 @@ import java.util.Date;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@RequiredArgsConstructor
 @Builder
 @TableName("t_coupon_settlement")
 public class CouponSettlementDO {
