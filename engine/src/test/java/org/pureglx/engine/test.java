@@ -2,10 +2,15 @@ package org.pureglx.engine;
 
 import cn.hutool.core.util.StrUtil;
 import com.alibaba.fastjson2.JSON;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import org.junit.jupiter.api.Test;
 import org.pureglx.engine.common.constant.EngineRedisConstant;
 import org.pureglx.engine.common.context.UserContext;
+import org.pureglx.engine.dao.entity.UserCouponDO;
+import org.pureglx.engine.dao.mapper.UserCouponMapper;
 import org.pureglx.engine.dto.resp.CouponTemplateQueryRespDTO;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.redis.core.RedisCallback;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -19,6 +24,9 @@ import static org.pureglx.engine.common.constant.EngineRedisConstant.COUPON_TEMP
 public class test {
 
     public StringRedisTemplate stringRedisTemplate;
+
+    @Autowired
+    public UserCouponMapper userCouponMapper;
 
     @Test
     void test() {
@@ -46,6 +54,22 @@ public class test {
 
         List<CouponTemplateQueryRespDTO> couponTemplateQueryRespDTOS = JSON.parseArray(JSON.toJSONString(rawCouponDataList), CouponTemplateQueryRespDTO.class);
 
+
+    }
+
+
+    @Test
+    void test1() {
+
+        LambdaQueryWrapper<UserCouponDO> eq = Wrappers.lambdaQuery(UserCouponDO.class)
+                .eq(UserCouponDO::getCouponTemplateId, 2035236407418814466L)
+                .eq(UserCouponDO::getUserId, 1810518709471555585L);
+
+
+        List<UserCouponDO> userCouponDOS = userCouponMapper.selectList(eq);
+        for (UserCouponDO userCouponDO : userCouponDOS) {
+            System.out.println(userCouponDO);
+        }
 
     }
 

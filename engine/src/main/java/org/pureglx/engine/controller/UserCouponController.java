@@ -46,7 +46,7 @@ public class UserCouponController {
     }
 
     @Operation(summary = "核销优惠卷", description = "支付完成结算优惠卷")
-    @PostMapping("/api/engine/user-coupon/create-payment-record")
+    @PostMapping("/api/engine/user-coupon/process-payment")
     public Result<Void> processPayment(@RequestBody CouponCreateProcessPaymentDTO requestParam) {
         userCouponService.processPayment(requestParam);
         return Results.success();
@@ -54,7 +54,7 @@ public class UserCouponController {
 
 
     @Operation(summary = "退款优惠卷", description = "退款优惠卷")
-    @PostMapping
+    @PostMapping("/api/engine/user-coupon/process-refund")
     public Result<Void> processRefund(@RequestBody CouponProcessRefundReqDTO requestParam) {
         userCouponService.processRefund(requestParam);
         return Results.success();

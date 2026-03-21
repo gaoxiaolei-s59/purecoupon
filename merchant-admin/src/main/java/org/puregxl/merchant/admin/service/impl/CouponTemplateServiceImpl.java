@@ -94,7 +94,7 @@ public class CouponTemplateServiceImpl extends ServiceImpl<CouponTemplateMapper,
         String couponTemplateCacheKey = String.format(COUPON_TEMPLATE_KEY, couponTemplateDO.getId());
         stringRedisTemplate.opsForHash().putAll(couponTemplateCacheKey, actualCacheTargetMap);
         //设置过期时间
-        stringRedisTemplate.expire(couponTemplateCacheKey, 30, TimeUnit.MINUTES);
+//        stringRedisTemplate.expire(couponTemplateCacheKey, 30, TimeUnit.MINUTES);
 
         //计算消息时间戳
         long deliverTimeStamp = couponTemplateDO.getValidEndTime().getTime();
