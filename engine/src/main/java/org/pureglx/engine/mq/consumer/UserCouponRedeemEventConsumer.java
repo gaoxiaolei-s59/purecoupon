@@ -53,7 +53,7 @@ public class UserCouponRedeemEventConsumer implements RocketMQListener<MessageWr
     @Transactional(rollbackFor = Exception.class)
     @NoMQDuplicateConsume(
             keyPrefix = "user-coupon-redeem:",
-            key = "#messageWrapper.keys",
+            key = "#p0.keys",
             keyTimeout = 600
     )
     @Override
@@ -125,4 +125,3 @@ public class UserCouponRedeemEventConsumer implements RocketMQListener<MessageWr
     }
 
 }
-

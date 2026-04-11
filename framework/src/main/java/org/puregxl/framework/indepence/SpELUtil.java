@@ -42,6 +42,14 @@ public class SpELUtil {
         Expression exp = parser.parseExpression(spEl);
         String[] params = discoverer.getParameterNames(method);
         StandardEvaluationContext context = new StandardEvaluationContext();
+        if (ArrayUtil.isNotEmpty(contextObj)) {
+            for (int i = 0; i < contextObj.length; i++) {
+                // Avoid relying solely on the compiler's -parameters flag.
+                context.setVariable("p" + i, contextObj[i]);
+                context.setVariable("a" + i, contextObj[i]);
+                context.setVariable("arg" + i, contextObj[i]);
+            }
+        }
         if (ArrayUtil.isNotEmpty(params)) {
             for (int len = 0; len < params.length; len++) {
                 context.setVariable(params[len], contextObj[len]);

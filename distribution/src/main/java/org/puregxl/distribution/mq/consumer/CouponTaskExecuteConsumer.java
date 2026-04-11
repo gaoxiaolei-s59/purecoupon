@@ -44,7 +44,7 @@ public class CouponTaskExecuteConsumer implements RocketMQListener<MessageWrappe
 
     @NoMQDuplicateConsume(
             keyPrefix = "coupon_task_execute_idempotent",
-            key = "#messageWrapper.message.couponTaskId",
+            key = "#p0.message.couponTaskId",
             keyTimeout = 120
     )
     @Override

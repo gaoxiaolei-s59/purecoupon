@@ -137,6 +137,7 @@ public class CouponQueryServiceImpl implements CouponQueryService {
             QueryCouponGoodsReqDTO couponGoods = goodsRequestMap.get(each.getGoods());
             if (couponGoods == null) {
                 notAvailableCouponList.add(BeanUtil.toBean(each, QueryCouponsDetailRespDTO.class));
+                return;
             }
             JSONObject jsonObject = JSON.parseObject(each.getConsumeRule());
             QueryCouponsDetailRespDTO resultQueryCouponDetail = BeanUtil.toBean(each, QueryCouponsDetailRespDTO.class);
